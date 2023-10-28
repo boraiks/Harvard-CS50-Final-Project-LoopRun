@@ -1,0 +1,199 @@
+{% extends "layout.html" %}
+
+
+{% block main %}
+    <head>
+        <style>
+
+            #gamescreen {
+                position: relative;
+                display: flex;
+                justify-content: center;
+                align-items: center;
+                margin: auto;
+                background-color: white;
+                width: 900px;
+                height: 250px;
+            }
+
+            #start {
+
+                margin: auto;
+                color: black;
+                font-size: 30px;
+                font-family: 'roboto', sans-serif;
+            }
+
+            #player {
+                position: absolute;
+                bottom: 20px;
+                left: 70px;
+                width: 50px;
+                height: 75px;
+                background-color: darkolivegreen;
+
+            }
+
+            #road {
+                position: absolute;
+                bottom: 0;
+                width: 900px;
+                height: 20px;
+                background-color: darkslategray;
+            }
+
+            #box {
+                position: absolute;
+                bottom: 20px;
+                right: 0px;
+                width: 50px;
+                height: 50px;
+                background-color: brown;
+            }
+
+            #scoreSpan {
+                position: absolute;
+                margin: auto;
+                top: 10px;
+                color: black;
+                font-size: 30px;
+            }
+
+            @keyframes jump {
+                0%{bottom: 20px;}
+                30%{bottom: 90px;}
+                50%{bottom: 150px;}
+            }
+
+            .jump {
+                 animation: jump 450ms linear;
+            }
+
+            @keyframes slide {
+                from {transform: translateX(0);}
+                to {transform: translateX(-1750%);}
+            }
+
+            .slide {
+                animation: slide 1s linear infinite;
+            }
+
+        </style>
+
+
+        <meta charset="UTF-8">
+        <title>Loop Run</title>
+
+    </head>
+    <body>
+
+            <form id="updateScoreForm" action="/update_score" method="post">
+                <input type="hidden" id="scoreInput" name="score">
+            </form>
+
+            <div id="gamescreen">
+
+                <div id="start">PRESS SPACE TO START</div>
+                <div id="player"></div>
+                <div id="road"></div>
+                <div id="box"></div>
+                <p><span id="scoreSpan"></span></p>
+                <p id = "message"></p>
+
+            </div>
+
+
+    <script>
+                document.addEventListener("DOMContentLoaded", function() {
+                const player = document.getElementById("player");
+                const box = document.getElementById("box");
+                const scoreSpan = document.getElementById("scoreSpan");
+
+
+                let score = 0;
+                let scoreInterval = null;
+                let isJumping = false;
+                let isCollided = false;
+                let isGameOver = false;
+
+                function updateScore(newScore) {
+                    document.getElementById("scoreInput").value = newScore;
+                    document.getElementById("updateScoreForm").submit();
+                }
+
+                function checkCollision() {
+                    const playerRect = player.getBoundingClientRect();
+                    const boxRect = box.getBoundingClientRect();
+
+                    if (
+                        playerRect.right > boxRect.left &&
+                        playerRect.left < boxRect.right &&
+                        playerRect.bottom > boxRect.top &&
+                        playerRect.top < boxRect.bottom
+                    ) {
+                        isCollided = true;
+                        isGameOver = true;
+                        player.style.animationPlayState = "paused";
+                        box.style.animationPlayState = "paused";
+                        clearInterval(scoreInterval);
+
+                        document.getElementById("message").textContent = "GAME OVER - Score: " + score;
+
+                        scoreSpan.style.display = "none";
+
+                        updateScore(score);
+                    }
+                }
+
+                function jump() {
+                    if (!isJumping) {
+                        isJumping = true;
+                        player.classList.add("jump");
+                        console.log("jump class added");
+                        setTimeout(function(){
+                            player.classList.remove("jump");
+                            isJumping = false;
+                            console.log("jump class removed");
+                        }, 500);
+                    }
+                }
+
+                function slide() {
+                    document.getElementById("box").classList.add("slide");
+                    scoreInterval = setInterval(function() {
+                        score ++;
+                        scoreSpan.textContent = score;
+                    }, 100);
+                }
+
+                document.addEventListener("keydown", function(event) {
+                    if ((event.code === "Space" || event.key === " ") && !isJumping && !isCollided) {
+                        jump();
+                        if(scoreInterval === null){
+                        slide();
+                        }
+                    }
+                });
+
+                document.addEventListener("keydown", function(event) {
+                    if (event.code === "Space" || event.key === " ") {
+                        document.getElementById("start").style.display = "none";
+                        jump();
+                    }
+                });
+
+                function gameLoop() {
+                    if (!isCollided) {
+                        checkCollision();
+                    }
+                    requestAnimationFrame(gameLoop);
+                }
+                gameLoop();
+            });
+
+    </script>
+
+
+
+    </body>
+{% endblock %}

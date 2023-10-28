@@ -1,0 +1,25 @@
+{% extends "layout.html" %}
+
+{% block title %}
+    LeaderBoard
+{% endblock %}
+
+{% block main %}
+    <table class="table">
+        <thead>
+        <tr>
+            <th>User</th>
+            <th>Score</th>
+        </tr>
+        </thead>
+
+        <tbody>
+        {% for scorer in topScorers %}
+        <tr>
+            <td>{{ scorer.username }}</td>
+            <td>{{ scorer.score }}</td>
+        </tr>
+        {% endfor %}
+        </tbody>
+    </table>
+{% endblock %}
